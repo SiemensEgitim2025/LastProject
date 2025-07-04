@@ -5,12 +5,15 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
 
 env:
-  DOCKER_REGISTRY: docker.io  # or your registry (e.g., ghcr.io)
-  IMAGE_NAME: ${{ test}}  # or your image name
-  
+  DOCKER_REGISTRY: docker.io
+  IMAGE_NAME: mehmetatman/test-app  # Replace with your image name
+  # or
+  # DOCKER_USERNAME: mehmetatman    # Your Docker Hub username
+  # DOCKER_REPO: test-app           # Your repository name
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -36,5 +39,3 @@ jobs:
           tags: |
             ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
