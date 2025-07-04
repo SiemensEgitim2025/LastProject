@@ -2,16 +2,14 @@ name: Docker Build and Push
 
 on:
   push:
-    branches: 
-      -main
+    branches: [ main ]
   pull_request:
-    branches: 
-     -main
+    branches: [ main ]
   workflow_dispatch:  # Manual trigger
 
 env:
   DOCKER_REGISTRY: docker.io  # or your registry (e.g., ghcr.io)
-  IMAGE_NAME: ${{ github.repository }}  # or your image name
+  IMAGE_NAME: ${{ test}}  # or your image name
   
 jobs:
   build:
@@ -24,11 +22,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build docker image
-        run: docker builder build -t dockerHubUsername/repoName:latest .
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Login to docker hub
-        run: docker login --username ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Push docker image to docker hub
-        run: docker push dockerHubUsername/repoName:latest 
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
